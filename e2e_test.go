@@ -2,6 +2,7 @@ package baton
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -77,5 +78,45 @@ func TestEndToEnd(t *testing.T) {
 		if m["request_id"] != id {
 			t.Errorf("%s logged request_id %v, want %s", m["svc"], m["request_id"], id)
 		}
+	}
+}
+
+// TestDetachedGoroutine: work that outlives the request uses
+// context.WithoutCancel, which keeps the ID but not the cancellation.
+func TestDetachedGoroutine(t *testing.T) {
+	var got string
+	b := httptest.NewServer(Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		got = FromContext(r.Context())
+	})))
+	defer b.Close()
+	client := &http.Client{Transport: Transport(nil)}
+
+	done := make(chan error, 1)
+	release := make(chan struct{})
+	a := Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithoutCancel(r.Context())
+		go func() {
+			<-release // runs after the handler has returned
+			req, _ := http.NewRequestWithContext(ctx, "GET", b.URL, nil)
+			resp, err := client.Do(req)
+			if err == nil {
+				resp.Body.Close()
+			}
+			done <- err
+		}()
+	}))
+
+	reqCtx, cancel := context.WithCancel(context.Background())
+	in := httptest.NewRequest("GET", "/", nil).WithContext(reqCtx)
+	in.Header.Set("X-Request-ID", "outlives-request")
+	a.ServeHTTP(httptest.NewRecorder(), in)
+	cancel() // what net/http does when the handler returns
+	close(release)
+
+	if err := <-done; err != nil {
+		t.Fatalf("detached call failed: %v", err)
+	}
+	if got != "outlives-request" {
+		t.Errorf("downstream saw %q", got)
 	}
 }

@@ -68,7 +68,14 @@ id := baton.FromContext(ctx)
 
 Two rules make it work:
 
-1. **Pass the request's `ctx` to outbound calls:** `http.NewRequestWithContext(r.Context(), ...)`. That's how `Transport` finds the ID. This includes calls made from goroutines and worker pools: send the `ctx` along with the job.
+1. **Pass the request's `ctx` to outbound calls:** `http.NewRequestWithContext(r.Context(), ...)`. That's how `Transport` finds the ID. Go has no goroutine-local storage, so the `ctx` is the only thing that carries the ID. When work moves to another goroutine, the `ctx` must go with it:
+   ```go
+   go func() { call(ctx, ...) }()          // capture it in the closure
+   jobs <- job{ctx: ctx, url: u}           // or put it in the job for a worker pool
+   ctx := context.WithoutCancel(r.Context()) // work that outlives the request:
+                                             // keeps the ID, drops the cancellation
+   ```
+   This is where the app beats eBPF. The agent has to guess which request a goroutine belongs to, and it can't for a worker pool started at boot. The app just hands the ID over.
 2. **Log with the context variants:** `logger.InfoContext(ctx, ...)`, `logger.ErrorContext(ctx, ...)`. Plain `logger.Info(...)` has no context, so it can't add the ID.
 
 A runnable service is in [`examples/nethttp`](examples/nethttp).
