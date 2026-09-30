@@ -1,4 +1,5 @@
-.DS_Store
+# Build and test output. OS/editor/tool files belong in your global gitignore.
+/bin/
 *.test
 *.out
-/bin/
+coverage.*
