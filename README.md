@@ -7,7 +7,7 @@
 ![Go](https://img.shields.io/badge/go-%E2%89%A51.22-00ADD8)
 ![Dependencies](https://img.shields.io/badge/dependencies-stdlib%20only-brightgreen)
 
-> 🚧 **Pre-release.** The API may change until v0.1.0 is tagged, ahead of MumbaiFOSS 2026 (31 Oct, IIT Bombay).
+> **v0.1.0.** Pre-1.0: the API is small and meant to stay stable, but minor releases may still change it. See the [CHANGELOG](CHANGELOG.md).
 
 ---
 
@@ -52,7 +52,7 @@ It also holds up when eBPF gets the trace wrong. When a request fans out through
 ## Install
 
 ```bash
-go get github.com/agarwalvivek29/baton
+go get github.com/agarwalvivek29/baton@v0.1.0
 ```
 
 Go 1.22 or newer. **Standard library only**: `net/http`, `context`, `log/slog`, `crypto/rand`. There are no dependencies to audit.
@@ -238,7 +238,7 @@ The full, cited setup (compose file, Grafana log → trace link, and the numbers
 
 - [x] v0.1: middleware, transport, slog handler, opt-in W3C Baggage, tests
 - [x] Example with `net/http`
-- [ ] Tag v0.1.0
+- [x] Tag v0.1.0
 - [ ] Examples with chi and gin (separate modules, so the root stays dependency-free)
 - [ ] Maybe later: async hops (Kafka, SQS)
 

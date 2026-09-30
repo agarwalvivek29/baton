@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-01
+
+First release.
+
 ### Added
 
 - `Middleware`: reads and validates the inbound request ID (1–128 chars of `[A-Za-z0-9._-]`), or creates one. Stores it in the context, sets it on `r.Header`, and echoes it on the response.
@@ -12,3 +16,6 @@ All notable changes to this project are documented here. The format follows [Kee
 - `FromContext`, `NewContext`, `NewID`.
 - Options: `WithHeader`, `WithGenerator`, `WithForward`, `WithLogKey`, `WithOnMissing`, `WithBaggage` (opt-in W3C Baggage).
 - Runnable examples and `examples/nethttp`.
+
+[Unreleased]: https://github.com/agarwalvivek29/baton/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/agarwalvivek29/baton/releases/tag/v0.1.0
